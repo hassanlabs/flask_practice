@@ -1,16 +1,18 @@
 from flask import Flask
 from .extensions import db
-from .routes.routes import authentication  # Make sure this points to your Blueprint
+from .routes.routes import authentication
+from flasgger import Swagger  # Import Swagger
+
 
 def create_app():
     app = Flask(__name__)
-    app.config.from_object('app.config.Config')  # Ensure this is correct
+    app.config.from_object('app.config.Config')
 
     db.init_app(app)
-
-    app.register_blueprint(authentication)  # Register the Blueprint
+    # Initialize Swagger
+    swagger = Swagger(app)
+    app.register_blueprint(authentication)
 
     with app.app_context():
-        db.create_all()  # Create database tables
-
+        db.create_all()
     return app

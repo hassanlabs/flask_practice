@@ -1,10 +1,58 @@
+from flasgger import swag_from  # Import swag_from
 from flask import Blueprint, request, jsonify
+from werkzeug.security import check_password_hash
 from ..models.user import User
 from ..extensions import db
 
 authentication = Blueprint('authentication', __name__)
 
+@authentication.route('/', methods=['GET', 'POST'])
+def home():
+    return "Why are you here?"
+
 @authentication.route('/login', methods=['POST'])
+@swag_from({
+    'responses': {
+        200: {
+            'description': 'Login successful',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'message': {
+                        'type': 'string',
+                        'example': 'Login successful'
+                    }
+                }
+            }
+        },
+        400: {
+            'description': 'Username and password are required',
+        },
+        401: {
+            'description': 'Invalid username or password',
+        }
+    },
+    'parameters': [
+        {
+            'name': 'body',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'username': {
+                        'type': 'string',
+                        'example': 'hassan'
+                    },
+                    'password': {
+                        'type': 'string',
+                        'example': 'yourpassword'
+                    }
+                }
+            }
+        }
+    ]
+})
 def login():
     data = request.get_json()
     username = data.get('username')
@@ -21,6 +69,72 @@ def login():
     return jsonify({'message': 'Login successful'}), 200
 
 @authentication.route('/register', methods=['POST'])
+@swag_from({
+    'responses': {
+        201: {
+            'description': 'User registered successfully',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'message': {
+                        'type': 'string',
+                        'example': 'User registered successfully'
+                    }
+                }
+            }
+        },
+        400: {
+            'description': 'All fields are required',
+        },
+        401: {
+            'description': 'Passwords do not match or username already exists',
+        }
+    },
+    'parameters': [
+        {
+            'name': 'body',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'first_name': {
+                        'type': 'string',
+                        'example': 'Hassan'
+                    },
+                    'last_name': {
+                        'type': 'string',
+                        'example': 'Tariq'
+                    },
+                    'username': {
+                        'type': 'string',
+                        'example': 'hassan'
+                    },
+                    'email': {
+                        'type': 'string',
+                        'example': 'hassan@example.com'
+                    },
+                    'password': {
+                        'type': 'string',
+                        'example': 'yourpassword'
+                    },
+                    'confirm_password': {
+                        'type': 'string',
+                        'example': 'yourpassword'
+                    },
+                    'phone_number': {
+                        'type': 'string',
+                        'example': '1234567890'
+                    },
+                    'age': {
+                        'type': 'integer',
+                        'example': 25
+                    }
+                }
+            }
+        }
+    ]
+})
 def register():
     data = request.get_json()
 
