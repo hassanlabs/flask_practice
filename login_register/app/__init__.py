@@ -4,7 +4,7 @@ from .routes.routes import authentication
 from flasgger import Swagger  # Import Swagger
 
 
-def create_app():
+def create_app(config_name=None):
     app = Flask(__name__)
     app.config.from_object('app.config.Config')
 
