@@ -2,6 +2,7 @@ from flask import Flask
 from .extensions import db
 from .routes.routes import authentication
 from flasgger import Swagger  # Import Swagger
+import jwt
 
 
 def create_app(config_name=None):

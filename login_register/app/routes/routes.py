@@ -1,8 +1,9 @@
-from flasgger import swag_from  # Import swag_from
-from flask import Blueprint, request, jsonify
+from flasgger import swag_from 
+from flask import Blueprint, request, jsonify, current_app
 from werkzeug.security import check_password_hash
 from ..models.user import User
 from ..extensions import db
+import jwt, datetime
 
 authentication = Blueprint('authentication', __name__)
 
@@ -65,8 +66,31 @@ def login():
 
     if not user or not user.check_password(password):
         return jsonify({'error': 'Invalid username or password'}), 401
+    
+    # Create JWT token
+    token = jwt.encode({
+        'username': user.username,
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)  # Use utcnow() here
+    }, current_app.config['SECRET_KEY'], algorithm='HS256')
+    return jsonify({'token': token})
 
-    return jsonify({'message': 'Login successful'}), 200
+# Protected route
+@authentication.route('/protected', methods=['GET', 'POST'])
+def protected():
+    token = request.headers.get('Authorization')
+
+    if not token:
+        return jsonify({'error': 'Token is missing!'}), 401
+
+    try:
+        data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
+        current_user = User.query.filter_by(username=data['username']).first()
+    except jwt.ExpiredSignatureError:
+        return jsonify({'error': 'Token has expired!'}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({'error': 'Invalid token!'}), 401
+
+    return jsonify({'message': f'Hello, {current_user.username}. You have accessed a protected route!'})
 
 @authentication.route('/register', methods=['POST'])
 @swag_from({
